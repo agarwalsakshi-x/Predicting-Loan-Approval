@@ -125,9 +125,8 @@ Based on the best model outputs:
 
 ### 5) Keep Process Compliance-Safe
 - Since gender and some demographic features had little value,
-  Reduce reliance on them to avoid bias concerns.
+  Reduce reliance on them to avoid concerns about bias.
 
--
 ## Tools & Libraries Used
 - Python (Pandas, NumPy)
 - Matplotlib / Seaborn (EDA + visualization)
