@@ -83,39 +83,52 @@ The model correctly predicts loan outcome for **~3 out of 4 applicants**. It is 
 | Recall | 0.78 |
 | F1-Score | 0.78 |
 
-The moderate accuracy drop (78% → 71%) indicates reasonable generalization with no severe overfitting.
+The moderate drop in accuracy (78% → 71%) indicates reasonable generalization without severe overfitting.
+
+**Top odds ratios (for business explainability):**
+- Credit History: **41.7× higher approval odds** for applicants with clean history
+- Married: 4.0× | Self-Employed: 2.3× | Balance Income: 2.2×
 
 ## 🔍 Key Drivers of Loan Approval
+From **Random Forest feature importance** (best model):
 
-From logistic regression odds ratios and random forest feature importance:
+<img width="1313" height="1089" alt="image" src="https://github.com/user-attachments/assets/38c72f66-9fec-488a-985c-059cdda5cabf" />
 
-| Driver | Impact |
-|---|---|
-| **Credit History** | **41.7× more likely to be approved**, by far the strongest single predictor |
-| **Married** | 4.0× higher odds of approval |
-| **Self-Employed** | 2.3× higher odds of approval |
-| **Balance Income** | 2.2× higher disposable income after EMI significantly boosts approval |
-| **Loan Amount** | Higher amounts reduce approval probability |
-| **Property Area** | Semiurban > Urban > Rural in approval likelihood |
 
-> ⚠️ Gender, education, and other demographic features showed **minimal predictive value**, relying on them risks compliance violations and fairness issues. They are deliberately excluded from the final scoring model.
+|Feature | Importance Score | What It Means |
+|---|---|---|
+| **Credit_History** | **0.27** | Dominates all other features, nearly 2× the next driver |
+| **LoanAmount** | 0.14 | Larger loans = higher default risk = lower approval odds |
+| **ApplicantIncome** | 0.13 | Primary income signal for affordability |
+| **CoapplicantIncome** | 0.10 | Joint income meaningfully improves approval probability |
+| **Dependents** | 0.08 | More dependents = higher financial burden |
+| **Property_Area_Semiurban** | 0.07 | Semiurban applicants have higher approval likelihood |
+| **Loan_Amount_Term** | 0.06 | Longer terms improve affordability and approval odds |
+| **Married** | 0.04 | Modest positive signal |
+| **Property_Area_Urban** | 0.03 | Urban also positive but less than semiurban |
+| **Education, Gender, Self_Employed** | ≤ 0.02 each | Minimal predictive value |
+
+> ⚠️ Gender, education, and self-employment status each contribute **≤2% of predictive importance** in the Random Forest model, yet carry real compliance and fairness risk. They are deliberately de-weighted in any production scoring decision.
 
 ## 💡 Business Recommendations
 
-**1. Make credit history the first filter**
-With a 41.7× impact on approval odds, credit history should be the non-negotiable first gate. Offer credit-building pathways to near-eligible applicants.
+**1. Make credit history a hard gate (Importance: 0.27)**
+Credit history alone accounts for 27% of predictive power, nearly double the next feature. It should be the non-negotiable first screen. For borderline applicants, offer structured credit-building pathways before re-application.
 
-**2. Use Balance Income, not just gross income, for affordability scoring**
-Raw income is right-skewed and misleading. Disposable income after estimated EMI is a far stronger repayment signal.
+**2. Set loan amount thresholds by income tier (Importance: 0.14)**
+LoanAmount is the #2 driver of rejection risk. Pair it with applicant income to define clear affordability bands; high loan amounts relative to income should trigger automatic escalation to manual review or require additional collateral.
 
-**3. Promote joint applications during onboarding**
-Co-applicant income meaningfully improves approval odds. Encourage joint applications where combined income tips the affordability calculation.
+**3. Prioritize total household income, not just applicant income (Importance: 0.13 + 0.10)**
+ApplicantIncome and CoapplicantIncome together account for 23% of model importance. Actively promote joint applications during onboarding; co-applicant income meaningfully tips the affordability calculation for borderline cases.
 
-**4. Add a manual review tier for high loan amounts**
-High-value requests carry disproportionate default risk. Route them to stricter underwriting or require additional collateral.
+**4. Factor in number of dependents during risk scoring (Importance: 0.08)**
+Dependents ranked 5th in the model; higher financial obligations reduce repayment capacity in ways that income alone doesn't capture. Include a dependents-adjusted income metric in the scoring logic.
 
-**5. Design for fairness from the start**
-Excluding low-signal demographic features before deployment reduces legal exposure and builds customer trust.
+**5. Use loan term as a lever for borderline approvals (Importance: 0.06)**
+Longer loan terms lower the monthly EMI and improve Balance Income; the model reflects this. For applicants who are borderline on affordability, offering an extended term can move them into the approved tier while managing risk.
+
+**6. Design for fairness from the start (Importance: ≤0.02 each)**
+Gender, education, and self-employment each contribute less than 2% of predictive importance but carry real compliance and legal risk. Exclude them from production scoring; the model doesn't need them, and using them creates liability.
 
 ## ⚠️ Limitations & Next Steps
 
@@ -134,6 +147,6 @@ Excluding low-signal demographic features before deployment reduces legal exposu
 |---|---|
 | `Predicting_Loan_Approval.ipynb` | Full end-to-end notebook: cleaning → EDA → modeling → evaluation |
 | `CreditRisk_Data_File.csv` | Raw dataset |
-| `Predicting_Loan_Approval_PPT.pptx` | Presentation deck with full business recommendations |
+| `Predicting_Loan_Approval.pptx` | Presentation deck with full business recommendations |
 
 
